@@ -21,6 +21,12 @@
   .nav-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
   .today-btn { padding: 4px 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; background: #fff; cursor: pointer; font-size: 11px; font-weight: 600; color: #475569; }
   .today-btn:hover { background: #f1f5f9; }
+  .fetch-btn { padding: 4px 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; background: #eff6ff; cursor: pointer; font-size: 11px; font-weight: 700; color: #1d4ed8; }
+  .fetch-btn:hover { background: #dbeafe; }
+  .fetch-btn:disabled { opacity: 0.6; cursor: progress; }
+  .sheet-link { padding: 4px 10px; border: 1.5px solid #86efac; border-radius: 8px; background: #dcfce7; font-size: 11px; font-weight: 700; color: #15803d; text-decoration: none; }
+  .sheet-link:hover { background: #bbf7d0; border-color: #4ade80; }
+  .fetch-status { font-size: 10px; font-weight: 600; color: #64748b; }
   .key-inline {
     display: flex;
     align-items: center;
@@ -236,6 +242,9 @@
     <h2 id="month-label">April 2026</h2>
     <button class="nav-btn" onclick="changeMonth(1)">&#8250;</button>
     <button class="today-btn" onclick="goToday()">Today</button>
+    <a class="sheet-link" href="https://docs.google.com/spreadsheets/d/1evS-9IlR-v94UIVd7J3KcwSxfXo-g6LDnEHJnwqEYBc/edit?gid=0#gid=0" target="_blank" rel="noreferrer">Source document</a>
+    <button class="fetch-btn" id="fetch-btn" onclick="fetchLatestFromSheet()">Fetch latest</button>
+    <span class="fetch-status" id="fetch-status"></span>
     <div class="key-inline">
       <div class="key-item"><div class="key-dot" style="background:#dcfce7;border:1px solid #86efac;"></div>Launched</div>
       <div class="key-item"><div class="key-dot" style="background:#fef3c7;border:1px solid #fcd34d;"></div>Experiment</div>
@@ -263,6 +272,7 @@
 <script>
 const DATA_JSON_URL = './data/mission-control.json';
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1evS-9IlR-v94UIVd7J3KcwSxfXo-g6LDnEHJnwqEYBc/export?format=csv&gid=0';
+const SHEET_GVIZ_URL = 'https://docs.google.com/spreadsheets/d/1evS-9IlR-v94UIVd7J3KcwSxfXo-g6LDnEHJnwqEYBc/gviz/tq?gid=0';
 const FALLBACK_FEATURES = [
   { name:'Add Beauty Products', cat:'One-time Add', owner:'Janel Molton', spec:'', expStart:null, expEnd:null, launch:new Date(2026,2,12), status:'Launched', pct:'', result:'' },
   { name:'New Website', cat:'One-time Add', owner:'Tiffany Ong', spec:'Figma', expStart:null, expEnd:null, launch:new Date(2026,3,13), status:'Launched', pct:'', result:'' },
@@ -284,6 +294,7 @@ const FALLBACK_FEATURES = [
   { name:'Live Activities', cat:'Product', owner:'Tiffany Ong', spec:'Live Activities', expStart:new Date(2026,3,9), expEnd:new Date(2026,3,16), launch:null, status:'No launch', pct:'', result:'' },
 ];
 let FEATURES = FALLBACK_FEATURES;
+let fetchStatusTimer = null;
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const TODAY = new Date();
@@ -411,6 +422,68 @@ function parseFeatureRows(text) {
   }).filter(feature => feature.name);
 }
 
+function parseFeatureRowsFromGviz(response) {
+  const table = response?.table;
+  const cols = table?.cols || [];
+  const rows = table?.rows || [];
+  if (!cols.length || !rows.length) return [];
+
+  const headers = cols.map(col => (col.label || '').trim());
+  return rows.map(row => {
+    const raw = {};
+    headers.forEach((header, index) => {
+      const cell = row.c?.[index];
+      if (!header) return;
+      raw[header] = cell?.f || cell?.v || '';
+    });
+    return normalizeFeature(raw);
+  }).filter(feature => feature.name);
+}
+
+function fetchFeatureRowsFromGviz() {
+  return new Promise((resolve, reject) => {
+    const callbackName = `__missionControlSheetCallback_${Date.now()}`;
+    const script = document.createElement('script');
+    let settled = false;
+
+    const cleanup = () => {
+      delete window[callbackName];
+      script.remove();
+    };
+
+    const timeoutId = window.setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error('Timed out loading sheet data'));
+    }, 10000);
+
+    window[callbackName] = response => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeoutId);
+      cleanup();
+      try {
+        const parsed = parseFeatureRowsFromGviz(response);
+        resolve(parsed);
+      } catch (error) {
+        reject(error);
+      }
+    };
+
+    script.onerror = () => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeoutId);
+      cleanup();
+      reject(new Error('Could not load Google Sheets script'));
+    };
+
+    script.src = `${SHEET_GVIZ_URL}&tqx=out:json;responseHandler:${callbackName};reqId:0`;
+    document.head.appendChild(script);
+  });
+}
+
 async function loadFeatures() {
   try {
     const response = await fetch(DATA_JSON_URL, { cache: 'no-store' });
@@ -435,6 +508,44 @@ async function loadFeatures() {
     if (parsed.length) FEATURES = parsed;
   } catch (error) {
     console.warn('Falling back to embedded feature data.', error);
+  }
+}
+
+function setFetchStatus(message, tone = 'neutral') {
+  const statusEl = document.getElementById('fetch-status');
+  if (!statusEl) return;
+  statusEl.textContent = message;
+  statusEl.style.color =
+    tone === 'success' ? '#15803d' :
+    tone === 'error' ? '#b91c1c' :
+    '#64748b';
+
+  if (fetchStatusTimer) clearTimeout(fetchStatusTimer);
+  if (message) {
+    fetchStatusTimer = window.setTimeout(() => {
+      statusEl.textContent = '';
+      statusEl.style.color = '#64748b';
+    }, 5000);
+  }
+}
+
+async function fetchLatestFromSheet() {
+  const button = document.getElementById('fetch-btn');
+  if (button) button.disabled = true;
+  setFetchStatus('Fetching latest sheet data...');
+
+  try {
+    const parsed = await fetchFeatureRowsFromGviz();
+    if (!parsed.length) throw new Error('Sheet returned no rows');
+    FEATURES = parsed;
+    renderGrid();
+    renderAgenda();
+    setFetchStatus('Updated from Google Sheet', 'success');
+  } catch (error) {
+    console.warn('Manual fetch from sheet failed.', error);
+    setFetchStatus('Could not fetch live sheet data', 'error');
+  } finally {
+    if (button) button.disabled = false;
   }
 }
 
