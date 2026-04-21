@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f1f5f9; padding: 16px; }
+  .page { max-width: 960px; margin: 0 auto; }
+
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+  .header-left h1 { font-size: 20px; font-weight: 800; color: #0f172a; line-height: 1.1; }
+  .header-left p { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+  .toggle { display: flex; background: #e2e8f0; border-radius: 8px; padding: 3px; gap: 2px; }
+  .toggle button { padding: 5px 14px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .toggle button.active { background: #0f172a; color: #fff; }
+  .toggle button:not(.active) { background: transparent; color: #64748b; }
+
+  .month-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .month-nav h2 { font-size: 20px; font-weight: 700; color: #0f172a; min-width: 160px; line-height: 1; }
+  .nav-btn { width: 30px; height: 30px; border: 1.5px solid #e2e8f0; border-radius: 8px; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #475569; transition: all 0.15s; }
+  .nav-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+  .today-btn { padding: 4px 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; background: #fff; cursor: pointer; font-size: 11px; font-weight: 600; color: #475569; }
+  .today-btn:hover { background: #f1f5f9; }
+  .key-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
+  .key-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #64748b;
+  }
+  .key-dot { width: 10px; height: 10px; border-radius: 3px; flex: 0 0 auto; }
+  .key-dot.line { width: 20px; border-radius: 999px; }
+
+  .cal { border: 1.5px solid #e2e8f0; border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .day-headers { display: grid; grid-template-columns: repeat(7, 1fr); background: #f8fafc; border-bottom: 1.5px solid #e2e8f0; }
+  .day-header { text-align: center; padding: 6px 4px; font-size: 10px; font-weight: 600; color: #6b7280; letter-spacing: 0.2px; }
+
+  /* Week row: position:relative so bars-layer can be absolutely positioned inside */
+  .week {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-bottom: 1.5px solid #e2e8f0;
+  }
+  .week:last-of-type { border-bottom: none; }
+
+  /* Day cell: position:relative for the absolute day number */
+  .day {
+    position: relative;
+    border-right: 1px solid #e2e8f0;
+    padding: 3px 4px 3px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    overflow: hidden;
+  }
+  .day:last-child { border-right: none; }
+  .day.other { background: #fafafa; }
+  .day.today { background: #eef2ff; }
+
+  /* Day number pinned to top-left, out of flex flow */
+  .dn {
+    position: absolute;
+    top: 3px;
+    left: 5px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1;
+  }
+  .dn.dim { color: #cbd5e1; font-weight: 400; }
+  .dn.now {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background: #4f46e5;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  /* Pills inside day cells */
+  .pill {
+    border-radius: 6px;
+    padding: 3px 7px;
+    font-size: 13px;
+    line-height: 1.15;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: normal;
+    overflow: hidden;
+    max-width: 100%;
+    display: block;
+    width: 100%;
+    min-height: 0;
+  }
+  .pill.green { background: #dcfce7; color: #15803d; }
+  .pill.amber { background: #fef3c7; color: #92400e; }
+  .pill.slate { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+  .pill.rose { background: #fecaca; color: #991b1b; }
+  .pill.tan { background: #fecaca; color: #754b00; }
+  .pill.planning { background: #e0e7ff; color: #3730a3; }
+  .pill.more {
+    background: #e2e8f0;
+    color: #475569;
+    text-align: center;
+    display: block;
+    min-height: auto;
+    line-height: 1.1;
+    font-size: 11px;
+  }
+  .day-events {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-height: var(--event-area, 0);
+  }
+  .pill.more.hidden {
+    visibility: hidden;
+  }
+
+  /* Bars layer: absolutely positioned inside .week, overlays cells */
+  .bars-layer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    z-index: 2;
+    /* top is set inline per week based on day-number height */
+  }
+  .bars-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: 19px;
+    gap: 1px 0;
+  }
+  .bar {
+    height: 17px;
+    display: flex;
+    align-items: center;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    pointer-events: all;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .bar.teal   { background: #ccfbf1; color: #0f766e; }
+  .bar.indigo { background: #e0e7ff; color: #3730a3; }
+  .bar.violet { background: #ede9fe; color: #5b21b6; }
+  .bar.amber  { background: #fef3c7; color: #92400e; }
+  .bar.rl { border-radius: 20px 0 0 20px; }
+  .bar.rr { border-radius: 0 20px 20px 0; }
+  .bar.rb { border-radius: 20px; }
+  .bar.rm { border-radius: 0; }
+
+  @media (max-width: 560px) {
+    .month-nav { align-items: flex-start; }
+    .key-inline { margin-left: 0; }
+  }
+
+  /* AGENDA */
+  .agenda { border: 1.5px solid #e2e8f0; border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .asec { padding: 12px 20px 4px; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+  .arow { display: flex; align-items: center; gap: 14px; padding: 10px 20px; border-top: 1px solid #f1f5f9; cursor: pointer; }
+  .arow:hover { background: #f8fafc; }
+  .adate { min-width: 48px; text-align: center; }
+  .adate .mo { font-size: 9px; color: #94a3b8; text-transform: uppercase; }
+  .adate .dy { font-size: 20px; font-weight: 800; color: #0f172a; line-height: 1; }
+  .adate .dy.dim { color: #94a3b8; }
+  .ainfo { flex: 1; min-width: 0; }
+  .aname { font-size: 13px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .ameta { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+  .abadge { font-size: 10px; border-radius: 20px; padding: 3px 10px; white-space: nowrap; font-weight: 600; }
+  .bg { background: #dcfce7; color: #15803d; }
+  .ba { background: #fef9c3; color: #92400e; }
+  .bs { background: #f1f5f9; color: #475569; }
+  .br { background: #fecaca; color: #991b1b; }
+  .bn { background: #fecaca; color: #754b00; }
+  .bp { background: #e0e7ff; color: #3730a3; }
+  .today-tag { font-size: 9px; background: #4f46e5; color: #fff; border-radius: 4px; padding: 2px 7px; }
+
+  #tooltip { position: fixed; display: none; max-width: 230px; background: #0f172a; color: #fff; border-radius: 8px; padding: 10px 12px; font-size: 11px; line-height: 1.5; pointer-events: none; z-index: 999; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+  #tooltip strong { display: block; font-size: 12px; margin-bottom: 3px; }
+  #tooltip .tm { color: #94a3b8; font-size: 10px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="header-left">
+      <h1>Launch Calendar</h1>
+    </div>
+    <div class="toggle">
+      <button class="active" onclick="showView('grid')">⊞ Grid</button>
+      <button onclick="showView('agenda')">☰ Agenda</button>
+    </div>
+  </div>
+
+  <div class="month-nav">
+    <button class="nav-btn" onclick="changeMonth(-1)">&#8249;</button>
+    <h2 id="month-label">April 2026</h2>
+    <button class="nav-btn" onclick="changeMonth(1)">&#8250;</button>
+    <button class="today-btn" onclick="goToday()">Today</button>
+    <div class="key-inline">
+      <div class="key-item"><div class="key-dot" style="background:#dcfce7;border:1px solid #86efac;"></div>Launched</div>
+      <div class="key-item"><div class="key-dot" style="background:#fef3c7;border:1px solid #fcd34d;"></div>Experiment</div>
+      <div class="key-item"><div class="key-dot" style="background:#f1f5f9;border:1px solid #cbd5e1;"></div>In Development</div>
+      <div class="key-item"><div class="key-dot" style="background:#fecaca;border:1px solid #f87171;"></div>Blocked</div>
+      <div class="key-item"><div class="key-dot" style="background:#fecaca;border:1px solid #fca5a5;"></div>No Launch</div>
+      <div class="key-item"><div class="key-dot" style="background:#e0e7ff;border:1px solid #a5b4fc;"></div>Planning</div>
+      <div class="key-item"><div class="key-dot line" style="background:#e0e7ff;border:1px solid #a5b4fc;"></div>Experiment Window</div>
+    </div>
+  </div>
+
+  <div id="view-grid">
+    <div class="cal">
+      <div class="day-headers">
+        <div class="day-header">SUN</div><div class="day-header">MON</div><div class="day-header">TUE</div>
+        <div class="day-header">WED</div><div class="day-header">THU</div><div class="day-header">FRI</div><div class="day-header">SAT</div>
+      </div>
+      <div id="cal-body"></div>
+    </div>
+  </div>
+
+  <div id="view-agenda" style="display:none;">
+    <div class="agenda" id="agenda-body"></div>
+  </div>
+</div>
+
+<div id="tooltip"><strong id="tn"></strong><div class="tm" id="tm"></div></div>
+
+<script>
+const DATA_JSON_URL = './data/mission-control.json';
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1evS-9IlR-v94UIVd7J3KcwSxfXo-g6LDnEHJnwqEYBc/export?format=csv&gid=0';
+const FALLBACK_FEATURES = [
+  { name:'Add Beauty Products', cat:'One-time Add', owner:'Janel Molton', spec:'', expStart:null, expEnd:null, launch:new Date(2026,2,12), status:'Launched', pct:'', result:'' },
+  { name:'New Website', cat:'One-time Add', owner:'Tiffany Ong', spec:'Figma', expStart:null, expEnd:null, launch:new Date(2026,3,13), status:'Launched', pct:'', result:'' },
+  { name:'Streaks', cat:'Product', owner:'Tiffany Ong', spec:'Streaks', expStart:new Date(2026,3,1), expEnd:new Date(2026,3,13), launch:new Date(2026,3,14), status:'Launched', pct:'', result:'' },
+  { name:'Test Beauty Ads', cat:'Ads', owner:'Javier Iturbe', spec:'', expStart:null, expEnd:null, launch:new Date(2026,3,14), status:'Launched', pct:'', result:'' },
+  { name:'Delete User Survey', cat:'One-time Add', owner:'Tiffany Ong', spec:'', expStart:null, expEnd:null, launch:new Date(2026,3,20), status:'Launched', pct:'', result:'' },
+  { name:'Closet on Favorites Tab', cat:'One-time Add', owner:'Javier Iturbe', spec:'Figma', expStart:null, expEnd:null, launch:new Date(2026,3,20), status:'Launched', pct:'', result:'' },
+  { name:'Stop Serving AG Jeans', cat:'Engineering', owner:'Paul Ivanov', spec:'', expStart:null, expEnd:null, launch:new Date(2026,3,20), status:'Launched', pct:'', result:'' },
+  { name:'Abandoned Cart', cat:'Product', owner:'Tiffany Ong', spec:'Send Users SMS with Links', expStart:null, expEnd:null, launch:new Date(2026,3,22), status:'In Development', pct:'', result:'' },
+  { name:'Streak Freezes', cat:'Product', owner:'Tiffany Ong', spec:'Streaks', expStart:null, expEnd:null, launch:new Date(2026,3,23), status:'In Development', pct:'', result:'' },
+  { name:'Add Pre-Loved Items', cat:'Product', owner:'Tiffany Ong', spec:'Pre-Loved Items', expStart:null, expEnd:null, launch:new Date(2026,3,24), status:'In Development', pct:'', result:'' },
+  { name:'Email to Brands to Collaborate', cat:'Merch', owner:'Marina Andriichenko', spec:'', expStart:null, expEnd:null, launch:new Date(2026,3,27), status:'In Development', pct:'', result:'' },
+  { name:'Home Page Survey', cat:'One-time Add', owner:'Javier Iturbe', spec:'Figma', expStart:null, expEnd:null, launch:new Date(2026,3,27), status:'In Development', pct:'', result:'' },
+  { name:'Off Golden Hour Search', cat:'Product', owner:'Javier Iturbe', spec:'Figma', expStart:new Date(2026,3,24), expEnd:new Date(2026,3,29), launch:new Date(2026,4,1), status:'In Development', pct:'', result:'' },
+  { name:'Open Golden Hour', cat:'Product', owner:'Javier Iturbe', spec:'', expStart:new Date(2026,3,24), expEnd:new Date(2026,3,29), launch:new Date(2026,4,1), status:'In Development', pct:'', result:'' },
+  { name:'Credits', cat:'Product', owner:'Tiffany Ong', spec:'Credits A/B Test', expStart:new Date(2026,3,20), expEnd:new Date(2026,4,4), launch:new Date(2026,4,4), status:'In Experiment', pct:'', result:'' },
+  { name:'Automated Push Notifications', cat:'Product', owner:'Tiffany Ong', spec:'Automated push notifications', expStart:null, expEnd:null, launch:new Date(2026,4,4), status:'Planning', pct:'', result:'' },
+  { name:'Prominent Buy Button', cat:'Product', owner:'Tiffany Ong', spec:'Figma', expStart:new Date(2026,3,15), expEnd:new Date(2026,4,13), launch:new Date(2026,4,14), status:'In Experiment', pct:'', result:'' },
+  { name:'Live Activities', cat:'Product', owner:'Tiffany Ong', spec:'Live Activities', expStart:new Date(2026,3,9), expEnd:new Date(2026,3,16), launch:null, status:'No launch', pct:'', result:'' },
+];
+let FEATURES = FALLBACK_FEATURES;
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const TODAY = new Date();
+let currentYear = TODAY.getFullYear(), currentMonth = TODAY.getMonth();
+
+function launchCountByDay(features) {
+  const counts = new Map();
+  features.forEach(feature => {
+    if (!feature.launch) return;
+    const key = `${feature.launch.getFullYear()}-${feature.launch.getMonth()}-${feature.launch.getDate()}`;
+    counts.set(key, (counts.get(key) || 0) + 1);
+  });
+  return counts;
+}
+
+function parseDate(value) {
+  if (!value) return null;
+  const parts = value.trim().split('/');
+  if (parts.length !== 3) return null;
+  const [month, day, year] = parts.map(Number);
+  if (!month || !day || !year) return null;
+  return new Date(year, month - 1, day);
+}
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let cell = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const next = text[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        cell += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      row.push(cell);
+      cell = '';
+    } else if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && next === '\n') i++;
+      row.push(cell);
+      if (row.some(value => value !== '')) rows.push(row);
+      row = [];
+      cell = '';
+    } else {
+      cell += char;
+    }
+  }
+
+  if (cell !== '' || row.length) {
+    row.push(cell);
+    if (row.some(value => value !== '')) rows.push(row);
+  }
+
+  return rows;
+}
+
+function normalizeFeature(raw) {
+  const status = (raw['Status'] || '').trim();
+  return {
+    name: (raw['Feature / Initiative'] || raw['Feature Name'] || '').trim(),
+    cat: (raw['Category'] || '').trim(),
+    owner: (raw['Owner'] || '').trim(),
+    spec: (raw['Spec or Design'] || '').trim(),
+    expStart: parseDate(raw['Experiment Start'] || ''),
+    expEnd: parseDate(raw['Experiment End'] || ''),
+    launch: parseDate(raw['Launch Date'] || ''),
+    status,
+    pct: (raw['Experiment %'] || '').trim(),
+    result: (raw['Results'] || '').trim(),
+  };
+}
+
+function serializeFeature(feature) {
+  const toDateString = value => value instanceof Date && !Number.isNaN(value.getTime())
+    ? `${value.getMonth() + 1}/${value.getDate()}/${value.getFullYear()}`
+    : null;
+
+  return {
+    name: feature.name || '',
+    cat: feature.cat || '',
+    owner: feature.owner || '',
+    spec: feature.spec || '',
+    expStart: toDateString(feature.expStart),
+    expEnd: toDateString(feature.expEnd),
+    launch: toDateString(feature.launch),
+    status: feature.status || '',
+    pct: feature.pct || '',
+    result: feature.result || '',
+  };
+}
+
+function deserializeFeature(raw) {
+  return {
+    name: (raw.name || '').trim(),
+    cat: (raw.cat || '').trim(),
+    owner: (raw.owner || '').trim(),
+    spec: (raw.spec || '').trim(),
+    expStart: parseDate(raw.expStart || ''),
+    expEnd: parseDate(raw.expEnd || ''),
+    launch: parseDate(raw.launch || ''),
+    status: (raw.status || '').trim(),
+    pct: (raw.pct || '').trim(),
+    result: (raw.result || '').trim(),
+  };
+}
+
+function parseFeatureRows(text) {
+  const rows = parseCsv(text);
+  if (rows.length < 2) return [];
+  const headers = rows[0].map(header => header.trim());
+
+  return rows.slice(1).map(values => {
+    const raw = {};
+    headers.forEach((header, index) => {
+      raw[header] = values[index] || '';
+    });
+    return normalizeFeature(raw);
+  }).filter(feature => feature.name);
+}
+
+async function loadFeatures() {
+  try {
+    const response = await fetch(DATA_JSON_URL, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Data fetch failed: ${response.status}`);
+    const payload = await response.json();
+    const parsed = Array.isArray(payload.features)
+      ? payload.features.map(deserializeFeature).filter(feature => feature.name)
+      : [];
+    if (parsed.length) {
+      FEATURES = parsed;
+      return;
+    }
+  } catch (error) {
+    console.warn('Falling back from local data file to live sheet fetch.', error);
+  }
+
+  try {
+    const response = await fetch(SHEET_CSV_URL);
+    if (!response.ok) throw new Error(`Sheet fetch failed: ${response.status}`);
+    const text = await response.text();
+    const parsed = parseFeatureRows(text);
+    if (parsed.length) FEATURES = parsed;
+  } catch (error) {
+    console.warn('Falling back to embedded feature data.', error);
+  }
+}
+
+function isSameDay(a, b) {
+  return a && b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+
+function pillClass(f) {
+  if (f.status === 'Launched' && f.result !== 'In Experiment') return 'green';
+  if (f.status === 'Launched' && f.result === 'In Experiment') return 'amber';
+  if (f.status === 'In Experiment') return 'amber';
+  if (f.status === 'In Development') return 'slate';
+  if (f.status === 'Blocked') return 'rose';
+  if (f.status === 'No launch') return 'tan';
+  if (f.status === 'Planning') return 'planning';
+  return 'amber';
+}
+
+function barClass(f) {
+  if (f.expStart && f.expEnd && f.expStart <= TODAY && f.expEnd >= TODAY) return 'amber';
+  return 'indigo';
+}
+
+function eventLabel(f) {
+  const hasExperimentWindow = !!(f.expStart && f.expEnd);
+  const isCurrentExperimentWindow = hasExperimentWindow && f.expStart <= TODAY && f.expEnd >= TODAY;
+  const isExperiment = f.status === 'In Experiment' || f.result === 'In Experiment' || isCurrentExperimentWindow;
+  if (f.status === 'No launch') {
+    return `${f.name} No Launch`;
+  }
+  if (f.status === 'Blocked') {
+    return `${f.name} Blocked`;
+  }
+  if (f.status === 'Planning') {
+    return `${f.name} Planning`;
+  }
+  if (isExperiment) {
+    return `${f.name} Experiment`;
+  }
+  if (f.launch && f.launch > TODAY && f.status !== 'Launched') {
+    return `${f.name} Estimated Launch`;
+  }
+  return `${f.name} Launch`;
+}
+
+function featureMeta(f) {
+  return [f.cat, f.owner, f.pct, f.spec, f.result].filter(Boolean).join(' · ');
+}
+
+function renderGrid() {
+  const year = currentYear, month = currentMonth;
+  document.getElementById('month-label').textContent = MONTHS[month] + ' ' + year;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const startDate = new Date(year, month, 1 - firstDay);
+
+  // Only currently active experiment windows get yellow bars
+  const spanFeatures = FEATURES.filter(f => f.expStart && f.expEnd && f.expStart <= TODAY && f.expEnd >= TODAY);
+
+  // Layout constants
+  const DN_HEIGHT = 21;      // px reserved for day number
+  const BAR_ROW_HEIGHT = 19; // px per stacked bar row
+  const MAX_VISIBLE_ITEMS = 4;
+  const CELL_EVENT_AREA = 76;
+
+  const weeks = [];
+  let cursor = new Date(startDate);
+
+  for (let week = 0; week < 6; week++) {
+    const weekStart = new Date(cursor);
+    if (weekStart.getMonth() > month && week > 0) break;
+
+    // All 7 days of this week
+    const weekDays = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(weekStart); d.setDate(d.getDate() + i); weekDays.push(d);
+    }
+
+    // Compute which bars overlap this week
+    const weekBars = [];
+    for (const f of spanFeatures) {
+      let startCol = -1, endCol = -1;
+      for (let i = 0; i < 7; i++) {
+        if (weekDays[i] >= f.expStart && weekDays[i] <= f.expEnd) {
+          if (startCol === -1) startCol = i;
+          endCol = i;
+        }
+      }
+      if (startCol === -1) continue;
+      const isStart = f.expStart >= weekDays[0];
+      const isEnd   = f.expEnd   <= weekDays[6];
+      const rClass  = isStart && isEnd ? 'rb' : isStart ? 'rl' : isEnd ? 'rr' : 'rm';
+      const label   = isStart ? `${f.name} Experiment` : '';
+      weekBars.push({ f, startCol, endCol, rClass, label });
+    }
+
+    // Assign grid-row to stack non-conflicting bars
+    const rowUsage = [];
+    const barGridRows = weekBars.map(bar => {
+      let row = 0;
+      while (rowUsage[row] !== undefined && rowUsage[row] >= bar.startCol) row++;
+      rowUsage[row] = Math.max(rowUsage[row] ?? -1, bar.endCol);
+      return row + 1; // 1-indexed for CSS grid
+    });
+
+    const numBarRows = weekBars.length > 0 ? Math.max(...barGridRows) : 0;
+    weeks.push({ weekDays, weekBars, barGridRows, numBarRows });
+    cursor.setDate(cursor.getDate() + 7);
+  }
+
+  const maxBarRows = weeks.length > 0 ? Math.max(...weeks.map(week => week.numBarRows)) : 0;
+  const launchCounts = launchCountByDay(FEATURES);
+  const maxVisibleLaunches = Math.max(
+    0,
+    ...Array.from(launchCounts.values()).map(count => Math.min(MAX_VISIBLE_ITEMS, count))
+  );
+  const hasOverflowLaunches = Array.from(launchCounts.values()).some(count => count > MAX_VISIBLE_ITEMS);
+  const sharedEventArea = maxVisibleLaunches > 0
+    ? (maxVisibleLaunches * 24) + (hasOverflowLaunches ? 10 : 0)
+    : 0;
+  const cellMinHeight = DN_HEIGHT + maxBarRows * BAR_ROW_HEIGHT + sharedEventArea + 8;
+
+  let html = '';
+
+  for (const weekData of weeks) {
+    const { weekDays, weekBars, barGridRows } = weekData;
+
+    html += '<div class="week">';
+
+    // ── Absolutely-positioned bars layer ──
+    // Sits at y = DN_TOP + day-number-height, overlays cells, doesn't affect cell height
+    if (weekBars.length > 0) {
+      let barsHtml = '';
+      weekBars.forEach((bar, i) => {
+        barsHtml +=
+          `<div class="bar ${barClass(bar.f)} ${bar.rClass}" ` +
+          `style="grid-column:${bar.startCol + 1}/${bar.endCol + 2};grid-row:${barGridRows[i]}" ` +
+          `data-tip="${bar.f.name} — Experiment" data-meta="${featureMeta(bar.f)}">` +
+          `${bar.label}</div>`;
+      });
+      html +=
+        `<div class="bars-layer" style="top:${DN_HEIGHT}px;">` +
+        `<div class="bars-grid">${barsHtml}</div></div>`;
+    }
+
+    // ── Day cells ──
+    // padding-top reserves space so pills appear below the bars layer
+    for (let d = 0; d < 7; d++) {
+      const day = new Date(weekDays[d]);
+      const isThisMonth = day.getMonth() === month;
+      const isToday     = isSameDay(day, TODAY);
+      const cls   = 'day' + (!isThisMonth ? ' other' : '') + (isToday ? ' today' : '');
+      const dnCls = !isThisMonth ? 'dn dim' : (isToday ? 'dn now' : 'dn');
+      const dayBarRows = weekBars.reduce((maxRow, bar, index) => {
+        if (d < bar.startCol || d > bar.endCol) return maxRow;
+        return Math.max(maxRow, barGridRows[index]);
+      }, 0);
+      const dayPaddingTop = DN_HEIGHT + dayBarRows * BAR_ROW_HEIGHT;
+
+      const launches = FEATURES.filter(f => isSameDay(f.launch, day));
+      const visibleLaunches = launches.slice(0, MAX_VISIBLE_ITEMS);
+      const hiddenCount = launches.length - visibleLaunches.length;
+      const hasDayContent = visibleLaunches.length > 0 || hiddenCount > 0;
+
+      html +=
+        `<div class="${cls}" style="padding-top:${dayPaddingTop}px;min-height:${cellMinHeight}px">` +
+        `<span class="${dnCls}">${day.getDate()}</span>`;
+      if (hasDayContent) {
+        html += `<div class="day-events" style="--event-area:${sharedEventArea}px">`;
+        for (const f of visibleLaunches) {
+          html +=
+            `<div class="pill ${pillClass(f)}" ` +
+            `data-tip="${f.name}" data-meta="${featureMeta(f)}">${eventLabel(f)}</div>`;
+        }
+        if (hiddenCount > 0) {
+          html += `<div class="pill more" data-tip="${hiddenCount} more launches" data-meta="${launches.slice(MAX_VISIBLE_ITEMS).map(f => f.name).join(' · ')}">+${hiddenCount} more</div>`;
+        }
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+
+    html += '</div>'; // .week
+  }
+
+  document.getElementById('cal-body').innerHTML = html;
+}
+
+function renderAgenda() {
+  const sectionOrder = ['Launched', 'In Experiment', 'In Development', 'Planning', 'Blocked', 'No launch'];
+  const sectionTitles = {
+    'Launched': 'Launched',
+    'In Experiment': 'In Experiment',
+    'In Development': 'In Development',
+    'Planning': 'Planning',
+    'Blocked': 'Blocked',
+    'No launch': 'No Launch'
+  };
+
+  function featureDateValue(f) {
+    return (f.launch || f.expStart || f.expEnd || new Date(2100, 0, 1)).getTime();
+  }
+
+  function badgeMarkup(f) {
+    if (f.status === 'Launched' && f.result !== 'In Experiment') return '<div class="abadge bg">Launched</div>';
+    if (f.status === 'In Experiment' || f.result === 'In Experiment') return '<div class="abadge ba">Experiment</div>';
+    if (f.status === 'In Development') return '<div class="abadge bs">In Dev</div>';
+    if (f.status === 'Planning') return '<div class="abadge bp">Planning</div>';
+    if (f.status === 'Blocked') return '<div class="abadge br">Blocked</div>';
+    if (f.status === 'No launch') return '<div class="abadge bn">No Launch</div>';
+    return `<div class="abadge bs">${f.status || 'Planned'}</div>`;
+  }
+
+  function row(f) {
+    const primaryDate = f.launch || f.expStart || f.expEnd;
+    const mo = primaryDate ? MONTHS[primaryDate.getMonth()].slice(0, 3) : '—';
+    const dy = primaryDate ? primaryDate.getDate() : '';
+    const todayTag = primaryDate && isSameDay(primaryDate, TODAY) ? '<span class="today-tag">Today</span>' : '';
+    const expNote = (f.expStart && f.expEnd)
+      ? ` · Exp ${MONTHS[f.expStart.getMonth()].slice(0,3)} ${f.expStart.getDate()}–${MONTHS[f.expEnd.getMonth()].slice(0,3)} ${f.expEnd.getDate()}`
+      : '';
+    return `<div class="arow" data-tip="${f.name}" data-meta="${featureMeta(f)}">
+      <div class="adate"><div class="mo">${mo}</div><div class="dy${!primaryDate ? ' dim' : ''}">${dy}</div></div>
+      <div class="ainfo">
+        <div class="aname">${f.name} ${todayTag}</div>
+        <div class="ameta">${f.cat} · ${f.owner}${f.pct ? ' · ' + f.pct : ''}${expNote}</div>
+      </div>
+      ${badgeMarkup(f)}
+    </div>`;
+  }
+
+  let html = '';
+  sectionOrder.forEach((status, index) => {
+    const items = FEATURES
+      .filter(f => f.status === status)
+      .sort((a, b) => featureDateValue(a) - featureDateValue(b) || a.name.localeCompare(b.name));
+    if (!items.length) return;
+    html += `<div class="asec"${index === 0 ? ' style="padding-top:16px;"' : ''}>${sectionTitles[status]}</div>`;
+    items.forEach(f => { html += row(f); });
+  });
+
+  document.getElementById('agenda-body').innerHTML = html;
+}
+
+function changeMonth(delta) {
+  currentMonth += delta;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  if (currentMonth < 0)  { currentMonth = 11; currentYear--; }
+  renderGrid(); renderAgenda();
+}
+
+function goToday() {
+  currentMonth = TODAY.getMonth();
+  currentYear  = TODAY.getFullYear();
+  renderGrid(); renderAgenda();
+}
+
+function showView(v) {
+  document.getElementById('view-grid').style.display   = v === 'grid'   ? 'block' : 'none';
+  document.getElementById('view-agenda').style.display = v === 'agenda' ? 'block' : 'none';
+  document.querySelectorAll('.toggle button').forEach((b, i) =>
+    b.classList.toggle('active', (v === 'grid' && i === 0) || (v === 'agenda' && i === 1)));
+}
+
+const tip = document.getElementById('tooltip');
+document.addEventListener('mouseover', e => {
+  const el = e.target.closest('[data-tip]');
+  if (el) {
+    document.getElementById('tn').textContent = el.dataset.tip;
+    document.getElementById('tm').textContent = el.dataset.meta;
+    tip.style.display = 'block';
+  } else {
+    tip.style.display = 'none';
+  }
+});
+document.addEventListener('mousemove', e => {
+  tip.style.left = (e.clientX + 14) + 'px';
+  tip.style.top  = (e.clientY + 14) + 'px';
+});
+
+loadFeatures().finally(() => {
+  renderGrid();
+  renderAgenda();
+});
+</script>
+</body>
+</html>
