@@ -177,7 +177,22 @@
 
   /* AGENDA */
   .agenda { border: 1.5px solid #e2e8f0; border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-  .asec { padding: 12px 20px 4px; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+  .asec {
+    padding: 16px 20px 8px;
+    font-size: 13px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    border-top: 1px solid #eef2f7;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  }
+  .asec:first-child { border-top: none; }
+  .asec.launched { color: #15803d; }
+  .asec.experiment { color: #92400e; }
+  .asec.development { color: #334155; }
+  .asec.planning { color: #3730a3; }
+  .asec.blocked { color: #991b1b; }
+  .asec.no-launch { color: #754b00; }
   .arow { display: flex; align-items: center; gap: 14px; padding: 10px 20px; border-top: 1px solid #f1f5f9; cursor: pointer; }
   .arow:hover { background: #f8fafc; }
   .adate { min-width: 48px; text-align: center; }
@@ -222,10 +237,6 @@
       <div class="key-item"><div class="key-dot" style="background:#dcfce7;border:1px solid #86efac;"></div>Launched</div>
       <div class="key-item"><div class="key-dot" style="background:#fef3c7;border:1px solid #fcd34d;"></div>Experiment</div>
       <div class="key-item"><div class="key-dot" style="background:#f1f5f9;border:1px solid #cbd5e1;"></div>In Development</div>
-      <div class="key-item"><div class="key-dot" style="background:#fecaca;border:1px solid #f87171;"></div>Blocked</div>
-      <div class="key-item"><div class="key-dot" style="background:#fecaca;border:1px solid #fca5a5;"></div>No Launch</div>
-      <div class="key-item"><div class="key-dot" style="background:#e0e7ff;border:1px solid #a5b4fc;"></div>Planning</div>
-      <div class="key-item"><div class="key-dot line" style="background:#e0e7ff;border:1px solid #a5b4fc;"></div>Experiment Window</div>
     </div>
   </div>
 
@@ -619,6 +630,14 @@ function renderAgenda() {
     'Blocked': 'Blocked',
     'No launch': 'No Launch'
   };
+  const sectionClasses = {
+    'Launched': 'launched',
+    'In Experiment': 'experiment',
+    'In Development': 'development',
+    'Planning': 'planning',
+    'Blocked': 'blocked',
+    'No launch': 'no-launch'
+  };
 
   function featureDateValue(f) {
     return (f.launch || f.expStart || f.expEnd || new Date(2100, 0, 1)).getTime();
@@ -658,7 +677,7 @@ function renderAgenda() {
       .filter(f => f.status === status)
       .sort((a, b) => featureDateValue(a) - featureDateValue(b) || a.name.localeCompare(b.name));
     if (!items.length) return;
-    html += `<div class="asec"${index === 0 ? ' style="padding-top:16px;"' : ''}>${sectionTitles[status]}</div>`;
+    html += `<div class="asec ${sectionClasses[status]}"${index === 0 ? ' style="padding-top:18px;"' : ''}>${sectionTitles[status]}</div>`;
     items.forEach(f => { html += row(f); });
   });
 
