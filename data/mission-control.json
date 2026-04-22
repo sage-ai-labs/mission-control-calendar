@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-22T16:26:49Z",
+  "generatedAt": "2026-04-22T16:51:15Z",
   "source": "https://docs.google.com/spreadsheets/d/1evS-9IlR-v94UIVd7J3KcwSxfXo-g6LDnEHJnwqEYBc/export?format=csv&gid=0",
   "features": [
     {
@@ -9,7 +9,7 @@
       "spec": "",
       "expStart": null,
       "expEnd": null,
-      "launch": "3/12/2026",
+      "launch": null,
       "status": "Launched",
       "pct": "",
       "result": ""
@@ -21,7 +21,7 @@
       "spec": "Figma",
       "expStart": null,
       "expEnd": null,
-      "launch": "4/13/2026",
+      "launch": null,
       "status": "Launched",
       "pct": "",
       "result": ""
@@ -33,7 +33,7 @@
       "spec": "Streaks",
       "expStart": "4/1/2026",
       "expEnd": "4/13/2026",
-      "launch": "4/14/2026",
+      "launch": null,
       "status": "Launched",
       "pct": "",
       "result": ""
@@ -45,7 +45,7 @@
       "spec": "",
       "expStart": null,
       "expEnd": null,
-      "launch": "4/14/2026",
+      "launch": null,
       "status": "Launched",
       "pct": "",
       "result": ""
@@ -57,7 +57,7 @@
       "spec": "Figma",
       "expStart": null,
       "expEnd": null,
-      "launch": "4/16/2026",
+      "launch": null,
       "status": "Launched",
       "pct": "",
       "result": ""
@@ -69,7 +69,7 @@
       "spec": "",
       "expStart": null,
       "expEnd": null,
-      "launch": "4/16/2026",
+      "launch": null,
       "status": "Launched",
       "pct": "",
       "result": ""
@@ -81,7 +81,7 @@
       "spec": "",
       "expStart": null,
       "expEnd": null,
-      "launch": "4/20/2026",
+      "launch": null,
       "status": "Launched",
       "pct": "",
       "result": ""
@@ -93,7 +93,7 @@
       "spec": "",
       "expStart": null,
       "expEnd": null,
-      "launch": "4/20/2026",
+      "launch": null,
       "status": "Launched",
       "pct": "",
       "result": ""
@@ -105,7 +105,7 @@
       "spec": "",
       "expStart": "4/21/2026",
       "expEnd": "4/28/2026",
-      "launch": "4/29/2026",
+      "launch": null,
       "status": "Launched",
       "pct": "",
       "result": ""
@@ -117,7 +117,7 @@
       "spec": "Send Users SMS with Links",
       "expStart": null,
       "expEnd": null,
-      "launch": "4/22/2026",
+      "launch": null,
       "status": "In Experiment",
       "pct": "",
       "result": ""
@@ -129,7 +129,7 @@
       "spec": "Pre-Loved Items",
       "expStart": null,
       "expEnd": null,
-      "launch": "4/24/2026",
+      "launch": null,
       "status": "In Development",
       "pct": "",
       "result": ""
@@ -141,7 +141,7 @@
       "spec": "Automated push notifications",
       "expStart": null,
       "expEnd": null,
-      "launch": "4/24/2026",
+      "launch": null,
       "status": "In Development",
       "pct": "",
       "result": ""
@@ -153,7 +153,7 @@
       "spec": "Streaks",
       "expStart": null,
       "expEnd": null,
-      "launch": "4/27/2026",
+      "launch": null,
       "status": "In Development",
       "pct": "",
       "result": ""
@@ -165,7 +165,7 @@
       "spec": "Figma",
       "expStart": null,
       "expEnd": null,
-      "launch": "4/27/2026",
+      "launch": null,
       "status": "In Development",
       "pct": "",
       "result": ""
@@ -177,7 +177,7 @@
       "spec": "",
       "expStart": null,
       "expEnd": null,
-      "launch": "4/28/2026",
+      "launch": null,
       "status": "In Development",
       "pct": "",
       "result": ""
@@ -189,7 +189,7 @@
       "spec": "Figma",
       "expStart": "4/24/2026",
       "expEnd": "4/29/2026",
-      "launch": "5/1/2026",
+      "launch": null,
       "status": "In Development",
       "pct": "",
       "result": ""
@@ -201,8 +201,8 @@
       "spec": "Credits A/B Test",
       "expStart": "4/20/2026",
       "expEnd": "5/4/2026",
-      "launch": "5/4/2026",
-      "status": "In Experiment",
+      "launch": null,
+      "status": "Blocked",
       "pct": "",
       "result": ""
     },
@@ -213,7 +213,7 @@
       "spec": "Figma",
       "expStart": "4/15/2026",
       "expEnd": "5/13/2026",
-      "launch": "5/14/2026",
+      "launch": null,
       "status": "In Experiment",
       "pct": "",
       "result": ""
@@ -231,7 +231,7 @@
       "result": ""
     },
     {
-      "name": "Age prompt",
+      "name": "Age Prompt",
       "cat": "Product",
       "owner": "Javier Iturbe",
       "spec": "",
