@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-22T17:49:47Z",
+  "generatedAt": "2026-04-22T18:27:02Z",
   "source": "https://docs.google.com/spreadsheets/d/1evS-9IlR-v94UIVd7J3KcwSxfXo-g6LDnEHJnwqEYBc/export?format=csv&gid=0",
   "features": [
     {
@@ -78,7 +78,7 @@
       "name": "Delete User Survey",
       "cat": "One-time Add",
       "owner": "Tiffany Ong",
-      "spec": "",
+      "spec": "Figma",
       "expStart": null,
       "expEnd": null,
       "launch": "4/20/2026",
@@ -102,11 +102,11 @@
       "name": "Open Golden Hour",
       "cat": "Product",
       "owner": "Javier Iturbe",
-      "spec": "",
+      "spec": "Figma",
       "expStart": "4/21/2026",
       "expEnd": "4/28/2026",
       "launch": "4/29/2026",
-      "status": "Launched",
+      "status": "In Experiment",
       "pct": "",
       "result": ""
     },
@@ -118,7 +118,7 @@
       "expStart": null,
       "expEnd": null,
       "launch": "4/22/2026",
-      "status": "In Experiment",
+      "status": "In Development",
       "pct": "",
       "result": ""
     },
