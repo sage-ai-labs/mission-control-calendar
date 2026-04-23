@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-23T18:54:18Z",
+  "generatedAt": "2026-04-23T19:32:24Z",
   "source": "https://docs.google.com/spreadsheets/d/1evS-9IlR-v94UIVd7J3KcwSxfXo-g6LDnEHJnwqEYBc/export?format=csv&gid=0",
   "features": [
     {
@@ -115,6 +115,20 @@
       "result": ""
     },
     {
+      "name": "Email to Brands to Collaborate",
+      "cat": "Merch",
+      "owner": "Marina Andriichenko",
+      "builders": "",
+      "spec": "",
+      "notes": "",
+      "expStart": null,
+      "expEnd": null,
+      "launch": "4/20/2026",
+      "status": "Launched",
+      "pct": "",
+      "result": ""
+    },
+    {
       "name": "Abandoned Cart",
       "cat": "Product",
       "owner": "Tiffany Ong",
@@ -195,20 +209,6 @@
       "expEnd": null,
       "launch": "4/27/2026",
       "status": "In Development",
-      "pct": "",
-      "result": ""
-    },
-    {
-      "name": "Email to Brands to Collaborate",
-      "cat": "Merch",
-      "owner": "Marina Andriichenko",
-      "builders": "",
-      "spec": "",
-      "notes": "",
-      "expStart": null,
-      "expEnd": null,
-      "launch": "4/28/2026",
-      "status": "Launched",
       "pct": "",
       "result": ""
     },
