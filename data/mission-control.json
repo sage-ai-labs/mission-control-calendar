@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-23T22:47:05Z",
+  "generatedAt": "2026-04-23T23:19:29Z",
   "source": "https://docs.google.com/spreadsheets/d/1evS-9IlR-v94UIVd7J3KcwSxfXo-g6LDnEHJnwqEYBc/export?format=csv&gid=0",
   "features": [
     {
@@ -81,8 +81,8 @@
       "notes": "Implemented yestederday, deploy today afternoon",
       "expStart": null,
       "expEnd": null,
-      "launch": "4/27/2026",
-      "status": "In Development",
+      "launch": "4/23/2026",
+      "status": "Launched",
       "pct": "",
       "result": ""
     },
@@ -116,15 +116,15 @@
     },
     {
       "name": "Age Prompt",
-      "cat": "Product",
+      "cat": "One-time Add",
       "owner": "Javier Iturbe",
       "builders": "Monique Altero",
       "spec": "https://www.figma.com/design/wHp9UNIMdlZeRpbADuRbmI/Javi--shared-?node-id=1508-32292&t=94jaiVAqio7ilPzs-1",
       "notes": "Created a test",
-      "expStart": "4/23/2026",
+      "expStart": null,
       "expEnd": null,
       "launch": "4/23/2026",
-      "status": "In Development",
+      "status": "Launched",
       "pct": "",
       "result": ""
     },
