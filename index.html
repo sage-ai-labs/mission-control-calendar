@@ -358,19 +358,31 @@ function parseCsv(text) {
   return rows;
 }
 
+function firstField(raw, aliases) {
+  for (const alias of aliases) {
+    const value = raw[alias];
+    if (value !== undefined && value !== null && String(value).trim() !== '') {
+      return String(value).trim();
+    }
+  }
+  return '';
+}
+
 function normalizeFeature(raw) {
-  const status = (raw['Status'] || '').trim();
+  const status = firstField(raw, ['Status']);
   return {
-    name: (raw['Feature / Initiative'] || raw['Feature Name'] || '').trim(),
-    cat: (raw['Category'] || '').trim(),
-    owner: (raw['Owner'] || '').trim(),
-    spec: (raw['Spec or Design'] || '').trim(),
-    expStart: parseDate(raw['Experiment Start'] || ''),
-    expEnd: parseDate(raw['Experiment End'] || ''),
-    launch: parseDate(raw['Launch Date'] || ''),
+    name: firstField(raw, ['Feature / Initiative', 'Feature Name', 'Initiative', 'Feature']),
+    cat: firstField(raw, ['Category', 'Type']),
+    owner: firstField(raw, ['Owner']),
+    builders: firstField(raw, ['Builders', 'Builder', 'Engineer', 'Engineers']),
+    spec: firstField(raw, ['Spec or Design', 'Spec', 'Design']),
+    notes: firstField(raw, ['Notes', 'Note']),
+    expStart: parseDate(firstField(raw, ['Experiment Start', 'Exp Start'])),
+    expEnd: parseDate(firstField(raw, ['Experiment End', 'Exp End'])),
+    launch: parseDate(firstField(raw, ['Launch Date', 'Launch'])),
     status,
-    pct: (raw['Experiment %'] || '').trim(),
-    result: (raw['Results'] || '').trim(),
+    pct: firstField(raw, ['Experiment %', 'Exp %']),
+    result: firstField(raw, ['Results', 'Result']),
   };
 }
 
@@ -383,7 +395,9 @@ function serializeFeature(feature) {
     name: feature.name || '',
     cat: feature.cat || '',
     owner: feature.owner || '',
+    builders: feature.builders || '',
     spec: feature.spec || '',
+    notes: feature.notes || '',
     expStart: toDateString(feature.expStart),
     expEnd: toDateString(feature.expEnd),
     launch: toDateString(feature.launch),
@@ -398,7 +412,9 @@ function deserializeFeature(raw) {
     name: (raw.name || '').trim(),
     cat: (raw.cat || '').trim(),
     owner: (raw.owner || '').trim(),
+    builders: (raw.builders || '').trim(),
     spec: (raw.spec || '').trim(),
+    notes: (raw.notes || '').trim(),
     expStart: parseDate(raw.expStart || ''),
     expEnd: parseDate(raw.expEnd || ''),
     launch: parseDate(raw.launch || ''),
@@ -419,7 +435,7 @@ function parseFeatureRows(text) {
       raw[header] = values[index] || '';
     });
     return normalizeFeature(raw);
-  }).filter(feature => feature.name);
+  }).filter(feature => feature.name && (feature.status || feature.launch || feature.expStart || feature.expEnd || feature.spec || feature.owner || feature.builders || feature.notes));
 }
 
 function parseFeatureRowsFromGviz(response) {
@@ -437,7 +453,7 @@ function parseFeatureRowsFromGviz(response) {
       raw[header] = cell?.f || cell?.v || '';
     });
     return normalizeFeature(raw);
-  }).filter(feature => feature.name);
+  }).filter(feature => feature.name && (feature.status || feature.launch || feature.expStart || feature.expEnd || feature.spec || feature.owner || feature.builders || feature.notes));
 }
 
 function fetchFeatureRowsFromGviz() {
@@ -592,7 +608,7 @@ function eventLabel(f) {
 }
 
 function featureMeta(f) {
-  return [f.cat, f.owner, f.pct, f.spec, f.result].filter(Boolean).join(' · ');
+  return [f.cat, f.owner, f.builders, f.pct, f.spec, f.result, f.notes].filter(Boolean).join(' · ');
 }
 
 function renderGrid() {

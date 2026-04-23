@@ -15,18 +15,28 @@ def clean(value):
     return (value or "").strip()
 
 
+def first_field(row, *aliases):
+    for alias in aliases:
+        value = clean(row.get(alias))
+        if value:
+            return value
+    return ""
+
+
 def normalize_row(row):
     return {
-        "name": clean(row.get("Feature / Initiative") or row.get("Feature Name")),
-        "cat": clean(row.get("Category")),
-        "owner": clean(row.get("Owner")),
-        "spec": clean(row.get("Spec or Design")),
-        "expStart": clean(row.get("Experiment Start")) or None,
-        "expEnd": clean(row.get("Experiment End")) or None,
-        "launch": clean(row.get("Launch Date")) or None,
-        "status": clean(row.get("Status")),
-        "pct": clean(row.get("Experiment %")),
-        "result": clean(row.get("Results")),
+        "name": first_field(row, "Feature / Initiative", "Feature Name", "Initiative", "Feature"),
+        "cat": first_field(row, "Category", "Type"),
+        "owner": first_field(row, "Owner"),
+        "builders": first_field(row, "Builders", "Builder", "Engineer", "Engineers"),
+        "spec": first_field(row, "Spec or Design", "Spec", "Design"),
+        "notes": first_field(row, "Notes", "Note"),
+        "expStart": first_field(row, "Experiment Start", "Exp Start") or None,
+        "expEnd": first_field(row, "Experiment End", "Exp End") or None,
+        "launch": first_field(row, "Launch Date", "Launch") or None,
+        "status": first_field(row, "Status"),
+        "pct": first_field(row, "Experiment %", "Exp %"),
+        "result": first_field(row, "Results", "Result"),
     }
 
 
@@ -34,7 +44,20 @@ def fetch_rows():
     with urlopen(SHEET_CSV_URL) as response:
         text = response.read().decode("utf-8-sig")
     reader = csv.DictReader(text.splitlines())
-    return [normalize_row(row) for row in reader if clean(row.get("Feature / Initiative") or row.get("Feature Name"))]
+    rows = [normalize_row(row) for row in reader]
+    return [
+        row for row in rows
+        if row["name"] and (
+            row["status"]
+            or row["launch"]
+            or row["expStart"]
+            or row["expEnd"]
+            or row["spec"]
+            or row["owner"]
+            or row["builders"]
+            or row["notes"]
+        )
+    ]
 
 
 def write_json(features):
