@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-23T21:50:39Z",
+  "generatedAt": "2026-04-23T22:17:50Z",
   "source": "https://docs.google.com/spreadsheets/d/1evS-9IlR-v94UIVd7J3KcwSxfXo-g6LDnEHJnwqEYBc/export?format=csv&gid=0",
   "features": [
     {
@@ -219,7 +219,7 @@
       "builders": "",
       "spec": "Streaks",
       "notes": "",
-      "expStart": "4/1/2026",
+      "expStart": "4/6/2026",
       "expEnd": "4/13/2026",
       "launch": "4/14/2026",
       "status": "Launched",
